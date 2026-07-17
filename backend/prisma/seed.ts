@@ -3,103 +3,41 @@ import { hashPassword } from '../src/utils/password.js';
 
 const prisma = new PrismaClient();
 
+async function ensureUser(email: string, name: string, plainPassword: string, role: 'ADMIN' | 'USER') {
+  const existing = await prisma.user.findUnique({ where: { email } });
+  if (existing) return existing;
+  const hashed = await hashPassword(plainPassword);
+  return prisma.user.create({ data: { email, name, password: hashed, role } });
+}
+
+async function ensureCategory(name: string, level: number, parentId?: string) {
+  const existing = await prisma.category.findFirst({ where: { name, parentId: parentId || null } });
+  if (existing) return existing;
+  return prisma.category.create({ data: { name, level, parentId } });
+}
+
+async function ensureBook(book: { title: string; author: string; description: string; coverImage: string; categoryId: string | undefined }) {
+  const existing = await prisma.book.findFirst({ where: { title: book.title, author: book.author } });
+  if (existing) return existing;
+  return prisma.book.create({ data: { title: book.title, author: book.author, description: book.description, coverImage: book.coverImage, categoryId: book.categoryId } });
+}
+
 async function main() {
-  console.log('Starting database seed...');
+  console.log('Starting idempotent database seed...');
 
-  // Clear existing data
-  await prisma.favorite.deleteMany();
-  await prisma.book.deleteMany();
-  await prisma.category.deleteMany();
-  await prisma.user.deleteMany();
+  // Ensure admin and users
+  const admin = await ensureUser('admin@example.com', 'Admin User', 'admin123', 'ADMIN');
+  const user1 = await ensureUser('john@example.com', 'John Doe', 'user123', 'USER');
+  const user2 = await ensureUser('jane@example.com', 'Jane Smith', 'user123', 'USER');
 
-  // Create admin user
-  const adminPassword = await hashPassword('admin123');
-  const admin = await prisma.user.create({
-    data: {
-      name: 'Admin User',
-      email: 'admin@example.com',
-      password: adminPassword,
-      role: 'ADMIN',
-    },
-  });
-
-  // Create regular users
-  const userPassword = await hashPassword('user123');
-  const user1 = await prisma.user.create({
-    data: {
-      name: 'John Doe',
-      email: 'john@example.com',
-      password: userPassword,
-      role: 'USER',
-    },
-  });
-
-  const user2 = await prisma.user.create({
-    data: {
-      name: 'Jane Smith',
-      email: 'jane@example.com',
-      password: userPassword,
-      role: 'USER',
-    },
-  });
-
-  // Create category hierarchy
-  const allBooks = await prisma.category.create({
-    data: {
-      name: 'All Books',
-      level: 1,
-    },
-  });
-
-  // Fiction hierarchy
-  const fiction = await prisma.category.create({
-    data: {
-      name: 'Fiction',
-      level: 2,
-      parentId: allBooks.id,
-    },
-  });
-
-  const romance = await prisma.category.create({
-    data: {
-      name: 'Romance',
-      level: 3,
-      parentId: fiction.id,
-    },
-  });
-
-  const classicFiction = await prisma.category.create({
-    data: {
-      name: 'Classic',
-      level: 3,
-      parentId: fiction.id,
-    },
-  });
-
-  // Non-Fiction hierarchy
-  const nonFiction = await prisma.category.create({
-    data: {
-      name: 'Non-Fiction',
-      level: 2,
-      parentId: allBooks.id,
-    },
-  });
-
-  const technology = await prisma.category.create({
-    data: {
-      name: 'Technology',
-      level: 3,
-      parentId: nonFiction.id,
-    },
-  });
-
-  const business = await prisma.category.create({
-    data: {
-      name: 'Business',
-      level: 3,
-      parentId: nonFiction.id,
-    },
-  });
+  // Ensure categories (hierarchy)
+  const allBooks = await ensureCategory('All Books', 1);
+  const fiction = await ensureCategory('Fiction', 2, allBooks.id);
+  const romance = await ensureCategory('Romance', 3, fiction.id);
+  const classicFiction = await ensureCategory('Classic', 3, fiction.id);
+  const nonFiction = await ensureCategory('Non-Fiction', 2, allBooks.id);
+  const technology = await ensureCategory('Technology', 3, nonFiction.id);
+  const business = await ensureCategory('Business', 3, nonFiction.id);
 
   // Create books
   const books = [
@@ -269,18 +207,27 @@ async function main() {
   ];
 
   for (const bookData of books) {
-    await prisma.book.create({ data: bookData });
+    // map category names to IDs where necessary
+    let categoryId = bookData.categoryId as any;
+    if (categoryId === 'romance') categoryId = romance.id;
+    if (categoryId === 'classic') categoryId = classicFiction.id;
+    if (categoryId === 'technology') categoryId = technology.id;
+    if (categoryId === 'business') categoryId = business.id;
+    await ensureBook({ title: bookData.title, author: bookData.author, description: bookData.description, coverImage: bookData.coverImage, categoryId });
   }
 
-  // Create some favorites
-  const allBooksData = await prisma.book.findMany({ take: 5 });
-  for (let i = 0; i < allBooksData.length; i++) {
-    await prisma.favorite.create({
-      data: {
-        userId: i % 2 === 0 ? user1.id : user2.id,
-        bookId: allBooksData[i].id,
-      },
-    });
+  // Ensure at least some favorites exist (non-destructive)
+  const existingFavorites = await prisma.favorite.findMany({ take: 1 });
+  if (existingFavorites.length === 0) {
+    const sampleBooks = await prisma.book.findMany({ take: 5 });
+    for (let i = 0; i < sampleBooks.length; i++) {
+      const userId = i % 2 === 0 ? user1.id : user2.id;
+      try {
+        await prisma.favorite.create({ data: { userId, bookId: sampleBooks[i].id } });
+      } catch (e) {
+        // ignore duplicates or FK issues
+      }
+    }
   }
 
   console.log('Database seed completed successfully!');
