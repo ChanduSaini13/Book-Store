@@ -5,7 +5,7 @@ const JWT_SECRET = process.env.JWT_SECRET || 'your_super_secret_jwt_key_change_i
 export interface JwtPayload {
   userId: string;
   email: string;
-  role: 'ADMIN' | 'USER';
+  role: string;
 }
 
 export const generateToken = (payload: JwtPayload): string => {

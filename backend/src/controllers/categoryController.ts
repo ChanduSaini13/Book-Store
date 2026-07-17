@@ -14,12 +14,12 @@ export const createCategory = async (req: AuthRequest, res: Response) => {
   res.status(201).json(category);
 };
 
-export const getCategories = async (req: AuthRequest, res: Response) => {
+export const getCategories = async (_req: AuthRequest, res: Response) => {
   const categories = await categoryService.getCategories();
   res.status(200).json(categories);
 };
 
-export const getCategoryTree = async (req: AuthRequest, res: Response) => {
+export const getCategoryTree = async (_req: AuthRequest, res: Response) => {
   try {
     const tree = await categoryService.getCategoryTree();
     res.status(200).json(tree);

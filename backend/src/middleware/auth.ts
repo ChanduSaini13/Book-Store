@@ -8,7 +8,7 @@ export interface AuthRequest extends Request {
   userEmail?: string;
 }
 
-export const authMiddleware = (req: AuthRequest, res: Response, next: NextFunction) => {
+export const authMiddleware = (req: AuthRequest, res: Response, next: NextFunction): void => {
   try {
     const authHeader = req.headers.authorization;
     const token = extractTokenFromHeader(authHeader);
@@ -19,7 +19,7 @@ export const authMiddleware = (req: AuthRequest, res: Response, next: NextFuncti
 
     const payload = verifyToken(token);
     req.userId = payload.userId;
-    req.userRole = payload.role;
+    req.userRole = payload.role === 'ADMIN' ? 'ADMIN' : 'USER';
     req.userEmail = payload.email;
 
     next();
@@ -30,16 +30,18 @@ export const authMiddleware = (req: AuthRequest, res: Response, next: NextFuncti
   }
 };
 
-export const adminMiddleware = (req: AuthRequest, res: Response, next: NextFunction) => {
+export const adminMiddleware = (req: AuthRequest, res: Response, next: NextFunction): void => {
   if (req.userRole !== 'ADMIN') {
-    return res.status(403).json({ message: 'Admin access required' });
+    res.status(403).json({ message: 'Admin access required' });
+    return;
   }
   next();
 };
 
-export const userMiddleware = (req: AuthRequest, res: Response, next: NextFunction) => {
+export const userMiddleware = (req: AuthRequest, res: Response, next: NextFunction): void => {
   if (!req.userId) {
-    return res.status(401).json({ message: 'Authentication required' });
+    res.status(401).json({ message: 'Authentication required' });
+    return;
   }
   next();
 };

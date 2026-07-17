@@ -71,7 +71,7 @@ export const updateCategory = async (id: string, input: CreateCategoryInput) => 
     }
 
     // Check for circular reference
-    let current = newParent;
+    let current: any = newParent;
     while (current) {
       if (current.id === id) {
         throw badRequestError('Cannot set category as its own parent');

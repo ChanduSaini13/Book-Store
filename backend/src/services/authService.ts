@@ -30,11 +30,11 @@ export const registerUser = async (input: RegisterInput) => {
     },
   });
 
-  const token = generateToken({
-    userId: user.id,
-    email: user.email,
-    role: user.role,
-  });
+const token = generateToken({
+  userId: user.id,
+  email: user.email,
+  role: user.role as 'ADMIN' | 'USER',
+});
 
   return {
     user: {
@@ -62,7 +62,7 @@ export const loginUser = async (input: LoginInput) => {
   const token = generateToken({
     userId: user.id,
     email: user.email,
-    role: user.role,
+    role: user.role as 'ADMIN' | 'USER',
   });
 
   return {
