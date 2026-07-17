@@ -61,12 +61,21 @@ router.get('/seed-books', async (req: Request, res: Response): Promise<Response>
     return res.status(403).json({ message: 'Forbidden' });
   }
 
-  // ensure categories
-  const allBooks = await prisma.category.upsert({ where: { name: 'All Books' }, update: {}, create: { name: 'All Books', level: 1 } });
-  const fiction = await prisma.category.upsert({ where: { name: 'Fiction' }, update: { parentId: allBooks.id }, create: { name: 'Fiction', level: 2, parentId: allBooks.id } });
-  const classic = await prisma.category.upsert({ where: { name: 'Classic' }, update: { parentId: fiction.id }, create: { name: 'Classic', level: 3, parentId: fiction.id } });
-  const tech = await prisma.category.upsert({ where: { name: 'Technology' }, update: { parentId: allBooks.id }, create: { name: 'Technology', level: 3, parentId: allBooks.id } });
-  const business = await prisma.category.upsert({ where: { name: 'Business' }, update: { parentId: allBooks.id }, create: { name: 'Business', level: 3, parentId: allBooks.id } });
+  // ensure categories (find or create)
+  let allBooks = await prisma.category.findFirst({ where: { name: 'All Books' } });
+  if (!allBooks) allBooks = await prisma.category.create({ data: { name: 'All Books', level: 1 } });
+
+  let fiction = await prisma.category.findFirst({ where: { name: 'Fiction' } });
+  if (!fiction) fiction = await prisma.category.create({ data: { name: 'Fiction', level: 2, parentId: allBooks.id } });
+
+  let classic = await prisma.category.findFirst({ where: { name: 'Classic' } });
+  if (!classic) classic = await prisma.category.create({ data: { name: 'Classic', level: 3, parentId: fiction.id } });
+
+  let tech = await prisma.category.findFirst({ where: { name: 'Technology' } });
+  if (!tech) tech = await prisma.category.create({ data: { name: 'Technology', level: 3, parentId: allBooks.id } });
+
+  let business = await prisma.category.findFirst({ where: { name: 'Business' } });
+  if (!business) business = await prisma.category.create({ data: { name: 'Business', level: 3, parentId: allBooks.id } });
 
   const sampleBooks = [
     { title: 'Pride and Prejudice', author: 'Jane Austen', description: 'Classic romance', coverImage: 'https://via.placeholder.com/300x400?text=Pride+and+Prejudice', categoryId: classic.id },
@@ -75,7 +84,10 @@ router.get('/seed-books', async (req: Request, res: Response): Promise<Response>
   ];
 
   for (const b of sampleBooks) {
-    await prisma.book.upsert({ where: { title: b.title }, update: {}, create: b as any });
+    const existing = await prisma.book.findFirst({ where: { title: b.title } });
+    if (!existing) {
+      await prisma.book.create({ data: b as any });
+    }
   }
 
   return res.json({ message: 'Seeded sample books' });
