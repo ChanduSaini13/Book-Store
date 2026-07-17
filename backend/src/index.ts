@@ -8,6 +8,7 @@ import bookRoutes from './routes/bookRoutes.js';
 import categoryRoutes from './routes/categoryRoutes.js';
 import favoriteRoutes from './routes/favoriteRoutes.js';
 import reportRoutes from './routes/reportRoutes.js';
+import debugRoutes from './routes/debugRoutes.js';
 import { errorHandler } from './middleware/errorHandler.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -49,6 +50,7 @@ app.use('/books', bookRoutes);
 app.use('/categories', categoryRoutes);
 app.use('/favorites', favoriteRoutes);
 app.use('/reports', reportRoutes);
+app.use('/debug', debugRoutes);
 
 // Health check
 app.get('/health', (_req, res) => {
