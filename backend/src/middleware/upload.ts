@@ -1,9 +1,15 @@
 import multer from 'multer';
 import path from 'path';
-import { fileURLToPath } from 'url';
+import fs from 'fs';
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const uploadsDir = path.join(__dirname, '../../uploads');
+// Resolve uploads directory relative to project root to avoid issues in different
+// runtime layouts (dist vs src). Use process.cwd() which points to project root.
+const uploadsDir = path.join(process.cwd(), 'backend', 'uploads');
+
+// Ensure uploads directory exists
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+}
 
 const storage = multer.diskStorage({
   destination: (_req, _file, cb) => {
