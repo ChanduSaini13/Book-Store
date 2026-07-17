@@ -54,14 +54,10 @@ export const booksAPI = {
     apiClient.get<Book>(`/books/${id}`),
 
   createBook: (data: FormData) =>
-    apiClient.post<Book>('/books', data, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    }),
+    apiClient.post<Book>('/books', data),
 
   updateBook: (id: string, data: FormData | Partial<Book>) =>
-    apiClient.put<Book>(`/books/${id}`, data, {
-      headers: data instanceof FormData ? { 'Content-Type': 'multipart/form-data' } : {},
-    }),
+    apiClient.put<Book>(`/books/${id}`, data),
 
   deleteBook: (id: string) =>
     apiClient.delete(`/books/${id}`),
