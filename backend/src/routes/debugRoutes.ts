@@ -54,5 +54,32 @@ router.get('/create-admin', async (req: Request, res: Response): Promise<Respons
   return res.json({ id: user.id, email: user.email });
 });
 
+// Temporary endpoint to create sample categories and books (idempotent)
+router.get('/seed-books', async (req: Request, res: Response): Promise<Response> => {
+  const debugHeader = req.headers['x-debug'];
+  if (!debugHeader || debugHeader !== 'true') {
+    return res.status(403).json({ message: 'Forbidden' });
+  }
+
+  // ensure categories
+  const allBooks = await prisma.category.upsert({ where: { name: 'All Books' }, update: {}, create: { name: 'All Books', level: 1 } });
+  const fiction = await prisma.category.upsert({ where: { name: 'Fiction' }, update: { parentId: allBooks.id }, create: { name: 'Fiction', level: 2, parentId: allBooks.id } });
+  const classic = await prisma.category.upsert({ where: { name: 'Classic' }, update: { parentId: fiction.id }, create: { name: 'Classic', level: 3, parentId: fiction.id } });
+  const tech = await prisma.category.upsert({ where: { name: 'Technology' }, update: { parentId: allBooks.id }, create: { name: 'Technology', level: 3, parentId: allBooks.id } });
+  const business = await prisma.category.upsert({ where: { name: 'Business' }, update: { parentId: allBooks.id }, create: { name: 'Business', level: 3, parentId: allBooks.id } });
+
+  const sampleBooks = [
+    { title: 'Pride and Prejudice', author: 'Jane Austen', description: 'Classic romance', coverImage: 'https://via.placeholder.com/300x400?text=Pride+and+Prejudice', categoryId: classic.id },
+    { title: 'Clean Code', author: 'Robert C. Martin', description: 'On writing clean code', coverImage: 'https://via.placeholder.com/300x400?text=Clean+Code', categoryId: tech.id },
+    { title: 'The Hobbit', author: 'J.R.R. Tolkien', description: 'Fantasy adventure', coverImage: 'https://via.placeholder.com/300x400?text=The+Hobbit', categoryId: classic.id },
+  ];
+
+  for (const b of sampleBooks) {
+    await prisma.book.upsert({ where: { title: b.title }, update: {}, create: b as any });
+  }
+
+  return res.json({ message: 'Seeded sample books' });
+});
+
 export default router;
 
