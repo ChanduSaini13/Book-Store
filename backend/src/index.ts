@@ -3,6 +3,7 @@ import express from 'express';
 import cors from 'cors';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { uploadsDir } from './middleware/upload.js';
 import authRoutes from './routes/authRoutes.js';
 import bookRoutes from './routes/bookRoutes.js';
 import categoryRoutes from './routes/categoryRoutes.js';
@@ -41,8 +42,8 @@ app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Static files
-app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+// Static files (serve uploaded images from the upload middleware directory)
+app.use('/uploads', express.static(uploadsDir));
 
 // Routes
 app.use('/auth', authRoutes);

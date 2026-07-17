@@ -4,7 +4,7 @@ import fs from 'fs';
 
 // Resolve uploads directory relative to project root to avoid issues in different
 // runtime layouts (dist vs src). Use process.cwd() which points to project root.
-const uploadsDir = path.join(process.cwd(), 'backend', 'uploads');
+export const uploadsDir = path.join(process.cwd(), 'backend', 'uploads');
 
 // Ensure uploads directory exists
 if (!fs.existsSync(uploadsDir)) {
