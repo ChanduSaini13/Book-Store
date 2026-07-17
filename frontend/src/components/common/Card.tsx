@@ -1,6 +1,5 @@
 import React from 'react';
 import { resolveBookCoverImage } from '../../utils/helpers.js';
-import { API_BASE_URL } from '../../utils/constants.js';
 
 interface CardProps {
   children: React.ReactNode;
