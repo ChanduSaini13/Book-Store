@@ -23,12 +23,14 @@ export const Card: React.FC<CardProps> = ({ children, className = '', onClick, h
 
 export const CardImage: React.FC<{ src?: string; alt: string; title?: string; author?: string }> = (props) => {
   const src = props.src ? resolveBookCoverImage(props.src, props.title || '', props.author) : resolveBookCoverImage(undefined, props.title || '', props.author);
+
+  // Use a background-image div to render covers (works reliably with data URLs)
   return (
-    <img
-      src={src}
-      alt={props.alt}
-      className="w-full h-40 object-cover rounded-t-lg"
-      loading="lazy"
+    <div
+      role="img"
+      aria-label={props.alt}
+      className="w-full h-40 bg-center bg-cover rounded-t-lg"
+      style={{ backgroundImage: `url("${src}")` }}
     />
   );
 };
