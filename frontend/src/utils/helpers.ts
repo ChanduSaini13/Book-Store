@@ -36,9 +36,16 @@ export const createDummyBookCover = (title: string, author?: string) => {
   return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
 };
 
+import { API_BASE_URL } from './constants';
+
 export const resolveBookCoverImage = (src: string | undefined, title: string, author?: string) => {
   if (!src || /via\.placeholder\.com|placehold\.co/i.test(src)) {
     return createDummyBookCover(title, author);
+  }
+
+  // If src is a relative uploads path, prefix with backend API base URL
+  if (src.startsWith('/uploads') || src.startsWith('uploads')) {
+    return `${API_BASE_URL.replace(/\/$/, '')}${src}`;
   }
 
   return src;

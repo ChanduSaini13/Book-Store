@@ -1,4 +1,6 @@
 import React from 'react';
+import { resolveBookCoverImage } from '../../utils/helpers.js';
+import { API_BASE_URL } from '../../utils/constants.js';
 
 interface CardProps {
   children: React.ReactNode;
@@ -20,14 +22,17 @@ export const Card: React.FC<CardProps> = ({ children, className = '', onClick, h
   );
 };
 
-export const CardImage: React.FC<{ src?: string; alt: string }> = (props) => (
-  <img
-    src={'/image1.jpg'}
-    alt={props.alt}
-    className="w-full h-40 object-cover rounded-t-lg"
-    loading="lazy"
-  />
-);
+export const CardImage: React.FC<{ src?: string; alt: string; title?: string; author?: string }> = (props) => {
+  const src = props.src ? resolveBookCoverImage(props.src, props.title || '', props.author) : resolveBookCoverImage(undefined, props.title || '', props.author);
+  return (
+    <img
+      src={src}
+      alt={props.alt}
+      className="w-full h-40 object-cover rounded-t-lg"
+      loading="lazy"
+    />
+  );
+};
 
 export const CardBody: React.FC<{ children: React.ReactNode; className?: string }> = ({
   children,
