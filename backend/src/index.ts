@@ -1,8 +1,6 @@
 import 'express-async-errors';
 import express from 'express';
 import cors from 'cors';
-import path from 'path';
-import { fileURLToPath } from 'url';
 import { uploadsDir } from './middleware/upload.js';
 import authRoutes from './routes/authRoutes.js';
 import bookRoutes from './routes/bookRoutes.js';
@@ -12,7 +10,7 @@ import reportRoutes from './routes/reportRoutes.js';
 import debugRoutes from './routes/debugRoutes.js';
 import { errorHandler } from './middleware/errorHandler.js';
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
+// __dirname removed (not used) to satisfy TypeScript no-unused-vars rules
 const app = express();
 const PORT = process.env.PORT || 5000;
 const allowedOrigins = [
