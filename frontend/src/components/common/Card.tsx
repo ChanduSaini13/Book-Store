@@ -1,5 +1,5 @@
 import React from 'react';
-import { resolveBookCoverImage } from '../../utils/helpers.js';
+import { resolveBookCoverImage, createDummyBookCoverRaw } from '../../utils/helpers.js';
 
 interface CardProps {
   children: React.ReactNode;
@@ -24,7 +24,17 @@ export const Card: React.FC<CardProps> = ({ children, className = '', onClick, h
 export const CardImage: React.FC<{ src?: string; alt: string; title?: string; author?: string }> = (props) => {
   const src = props.src ? resolveBookCoverImage(props.src, props.title || '', props.author) : resolveBookCoverImage(undefined, props.title || '', props.author);
 
-  // Use a background-image div to render covers (works reliably with data URLs)
+  // If the cover is an SVG data URL, render the raw SVG inline to avoid data: URL or CSP issues.
+  if (typeof src === 'string' && src.startsWith('data:image/svg+xml')) {
+    const svg = createDummyBookCoverRaw(props.title || '', props.author);
+    return (
+      <div className="w-full h-40 rounded-t-lg overflow-hidden">
+        <div className="w-full h-full" dangerouslySetInnerHTML={{ __html: svg }} />
+      </div>
+    );
+  }
+
+  // Use a background-image div to render covers (works reliably with urls)
   return (
     <div
       role="img"
