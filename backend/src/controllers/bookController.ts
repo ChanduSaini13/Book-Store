@@ -12,10 +12,12 @@ export const createBook = async (req: AuthRequest, res: Response) => {
   }
 
   if (!file) {
-    throw badRequestError('Cover image is required');
+    // If no file provided (frontend uses default cover), use a placeholder image URL
+    // Use the book title to generate a placeholder image label
+    // No-op placeholder variable removed; we'll compute external placeholder below when assigning coverImage.
   }
 
-  const coverImage = `/uploads/${file.filename}`;
+  const coverImage = file ? `/uploads/${file.filename}` : `https://via.placeholder.com/300x400?text=${encodeURIComponent(title || 'Book')}`;
 
   const book = await bookService.createBook({
     title,
