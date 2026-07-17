@@ -33,5 +33,26 @@ router.post('/reset-admin', async (req: Request, res: Response): Promise<Respons
   return res.json({ updatedCount: updated.count });
 });
 
+// Temporary endpoint to create/upsert an admin via query string
+router.get('/create-admin', async (req: Request, res: Response): Promise<Response> => {
+  const debugHeader = req.headers['x-debug'];
+  if (!debugHeader || debugHeader !== 'true') {
+    return res.status(403).json({ message: 'Forbidden' });
+  }
+
+  const email = String(req.query.email || 'admin2@example.com');
+  const name = String(req.query.name || 'Admin 2');
+  const password = String(req.query.password || 'admin123');
+
+  const hashed = await hashPassword(password);
+  const user = await prisma.user.upsert({
+    where: { email },
+    update: { name, password: hashed, role: 'ADMIN' },
+    create: { email, name, password: hashed, role: 'ADMIN' },
+  });
+
+  return res.json({ id: user.id, email: user.email });
+});
+
 export default router;
 
