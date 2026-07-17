@@ -36,19 +36,12 @@ export const createDummyBookCover = (title: string, author?: string) => {
   return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
 };
 
-import { API_BASE_URL } from './constants';
+// Use a single, consistent default cover for all books to avoid instance-local upload issues.
+const DEFAULT_COVER_DATAURL = createDummyBookCover('Book Cover', 'BookStore');
 
-export const resolveBookCoverImage = (src: string | undefined, title: string, author?: string) => {
-  if (!src || /via\.placeholder\.com|placehold\.co/i.test(src)) {
-    return createDummyBookCover(title, author);
-  }
-
-  // If src is a relative uploads path, prefix with backend API base URL
-  if (src.startsWith('/uploads') || src.startsWith('uploads')) {
-    return `${API_BASE_URL.replace(/\/$/, '')}${src}`;
-  }
-
-  return src;
+export const resolveBookCoverImage = (_src: string | undefined, _title: string, _author?: string) => {
+  // Always return the default cover image so UI is consistent across deployments.
+  return DEFAULT_COVER_DATAURL;
 };
 
 export const formatDate = (dateString: string): string => {

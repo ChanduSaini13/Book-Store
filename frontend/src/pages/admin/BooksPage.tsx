@@ -21,7 +21,6 @@ const AdminBooksPage: React.FC = () => {
     author: '',
     description: '',
     categoryId: '',
-    coverImage: null as File | null,
   });
   const modalCreate = useModal();
   const modalEdit = useModal();
@@ -63,7 +62,7 @@ const AdminBooksPage: React.FC = () => {
   const leafCategories = flattenCategories(categories);
 
   const handleCreate = () => {
-    setFormData({ title: '', author: '', description: '', categoryId: '', coverImage: null });
+    setFormData({ title: '', author: '', description: '', categoryId: '' });
     setSelectedBook(null);
     modalCreate.open();
   };
@@ -75,7 +74,6 @@ const AdminBooksPage: React.FC = () => {
       author: book.author,
       description: book.description,
       categoryId: book.categoryId,
-      coverImage: null,
     });
     modalEdit.open();
   };
@@ -92,9 +90,7 @@ const AdminBooksPage: React.FC = () => {
       form.append('author', formData.author);
       form.append('description', formData.description);
       form.append('categoryId', formData.categoryId);
-      if (formData.coverImage) {
-        form.append('coverImage', formData.coverImage);
-      }
+      // coverImage uploads removed — backend will use default cover
 
       if (selectedBook) {
         await booksAPI.updateBook(selectedBook.id, form);
@@ -236,15 +232,7 @@ const AdminBooksPage: React.FC = () => {
               options={leafCategories.map((cat) => ({ value: cat.id, label: cat.name }))}
             />
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Cover Image</label>
-              <input
-                type="file"
-                accept="image/*"
-                onChange={(e) => setFormData({ ...formData, coverImage: e.target.files?.[0] || null })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-              />
-            </div>
+            {/* Cover image uploads removed — using a single default cover image for all books */}
           </div>
         </Modal>
 
